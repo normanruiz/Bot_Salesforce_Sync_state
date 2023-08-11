@@ -1,11 +1,13 @@
 from Modelo.Configuracion import Configuracion
 from Servicio.Log import Log
+from Servicio.SericiosAter import ServiciosAter
 
 
 class Bot:
     def __init__(self):
         self._estado = True
         self._configuracion = None
+        self._terminales = []
 
     @property
     def estado(self):
@@ -22,6 +24,14 @@ class Bot:
     @configuracion.setter
     def configuracion(self, configuracion):
         self._configuracion = configuracion
+
+    @property
+    def terminales(self):
+        return self._terminales
+
+    @terminales.setter
+    def terminales(self, terminales):
+        self._terminales = terminales
 
     def iniciar(self):
         status_code = 0
@@ -42,6 +52,11 @@ class Bot:
             if not self.estado:
                 mensaje = f"Bot apagado por configuracion..."
                 log.escribir(mensaje)
+                return
+
+            servicios_ater = ServiciosAter(log, self.configuracion)
+            self.terminales = servicios_ater.buscarterminales()
+            if self.terminales is False:
                 return
 
         except Exception as excepcion:

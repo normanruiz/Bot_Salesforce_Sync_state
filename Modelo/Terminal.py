@@ -1,5 +1,5 @@
 class Terminal:
-    def __init__(self, numero=None, estado=None ):
+    def __init__(self, numero=None, estado=None):
         self._numero = numero
         self._estado = estado
 

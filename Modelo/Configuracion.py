@@ -46,12 +46,12 @@ class Configuracion:
                       int(config["parametros"]["bot"]["hilos"]), autor)
             self.bot = bot
             conexion_db = Conexion(config["parametros"]["conexiones_db"]["driver"],
-                                config["parametros"]["conexiones_db"]["server"],
-                                config["parametros"]["conexiones_db"]["database"],
-                                config["parametros"]["conexiones_db"]["username"],
-                                config["parametros"]["conexiones_db"]["password"],
-                                config["parametros"]["conexiones_db"]["select"],
-                                config["parametros"]["conexiones_db"]["update"])
+                                   config["parametros"]["conexiones_db"]["server"],
+                                   config["parametros"]["conexiones_db"]["database"],
+                                   config["parametros"]["conexiones_db"]["username"],
+                                   config["parametros"]["conexiones_db"]["password"],
+                                   config["parametros"]["conexiones_db"]["select"],
+                                   config["parametros"]["conexiones_db"]["update"])
             self.conexiones.append(conexion_db)
             mensaje = f"Configuracion cargada correctamente..."
             self.log.escribir(mensaje)
