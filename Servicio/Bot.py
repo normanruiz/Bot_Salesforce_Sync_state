@@ -1,3 +1,4 @@
+from Modelo.Configuracion import Configuracion
 from Servicio.Log import Log
 
 
@@ -33,6 +34,15 @@ class Bot:
             log.escribir(mensaje)
             mensaje = f" {'~'*128 }"
             log.escribir(mensaje, tiempo=False)
+
+            configuracion = Configuracion(log)
+            configuracion.cargar()
+            self.configuracion = configuracion
+            self.estado = self.configuracion.bot.estado
+            if not self.estado:
+                mensaje = f"Bot apagado por configuracion..."
+                log.escribir(mensaje)
+                return
 
         except Exception as excepcion:
             status_code = 1
