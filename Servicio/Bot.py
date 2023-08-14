@@ -1,13 +1,18 @@
 from Modelo.Configuracion import Configuracion
 from Servicio.Log import Log
-from Servicio.SericiosAter import ServiciosAter
+from Servicio.ServiciosAter import ServiciosAter
+from Servicio.ServiciosSalesfoce import ServiciosSalesforce
+from Servicio.ServiciosTerminales import ServiciosTerminales
 
 
 class Bot:
     def __init__(self):
         self._estado = True
         self._configuracion = None
-        self._terminales = []
+        self._datos_ater = {}
+        self._datos_salsforce = {}
+        self._terminales = {}
+
 
     @property
     def estado(self):
@@ -24,6 +29,22 @@ class Bot:
     @configuracion.setter
     def configuracion(self, configuracion):
         self._configuracion = configuracion
+
+    @property
+    def datos_ater(self):
+        return self._datos_ater
+
+    @datos_ater.setter
+    def datos_ater(self, datos_ater):
+        self._datos_ater = datos_ater
+
+    @property
+    def datos_salesforce(self):
+        return self._datos_salesforce
+
+    @datos_salesforce.setter
+    def datos_salesforce(self, datos_salesforce):
+        self._datos_salesforce = datos_salesforce
 
     @property
     def terminales(self):
@@ -55,7 +76,17 @@ class Bot:
                 return
 
             servicios_ater = ServiciosAter(log, self.configuracion)
-            self.terminales = servicios_ater.buscarterminales()
+            self.datos_ater = servicios_ater.buscarterminales()
+            if self.datos_ater is False:
+                return
+
+            servicios_salesforce = ServiciosSalesforce(log, self.configuracion)
+            self.datos_salesforce = servicios_salesforce.buscarterminales()
+            if self.datos_salesforce is False:
+                return
+
+            servicios_terminales = ServiciosTerminales(log, self.datos_ater, self.datos_salesforce)
+            self.terminales = servicios_terminales.filtrar()
             if self.terminales is False:
                 return
 

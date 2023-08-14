@@ -6,7 +6,7 @@ class ServiciosAter:
     def __init__(self, log, configuracion):
         self._log = log
         self._configuracion = configuracion
-        self.terminales = []
+        self.terminales = {}
 
     @property
     def log(self):
@@ -34,7 +34,7 @@ class ServiciosAter:
             for registro in dataset_origen:
                 terminal = Terminal()
                 terminal.numero = registro[0]
-                self.terminales.append(terminal)
+                self.terminales[terminal.numero] = terminal
             mensaje = f"Registros recuperados: {len(self.terminales)}"
             self.log.escribir(mensaje)
 
