@@ -1,3 +1,4 @@
+from Modelo.Terminal import Terminal
 from Servicio.ConexionAPI import ConexionAPI
 
 
@@ -17,6 +18,7 @@ class ServiciosSalesforce:
 
     def buscarterminales(self):
         estado = True
+        datos = {}
         try:
             mensaje = f"Recuperando datos de Salesforce..."
             self.log.escribir(mensaje)
@@ -24,13 +26,22 @@ class ServiciosSalesforce:
             datos_api = self.configuracion.conexiones[1]
             api_salesforce = ConexionAPI(self.log)
             api_salesforce.autenticarse(datos_api)
-            self.terminales = api_salesforce.consultar()
+            datos_respuesta = api_salesforce.consultar()
+            if datos_respuesta is False:
+                raise Exception('Fallo la recoleccion de datos.')
+            else:
+                for numero, estado in datos_respuesta.items():
+                    terminal = Terminal()
+                    terminal.numero = numero
+                    terminal.estado = estado
+                    datos[terminal.numero] = terminal
+            self.terminales = datos
 
             mensaje = f"Subproceso finalizado..."
             self.log.escribir(mensaje)
         except Exception as excepcion:
             estado = False
-            mensaje = f"ERROR - Recuperando datos de Ater: {str(excepcion)}"
+            mensaje = f"ERROR - Recuperando datos de Salesforce: {str(excepcion)}"
             self.log.escribir(mensaje)
             mensaje = f"WARNING!!! - Subproceso interrumpido..."
             self.log.escribir(mensaje)

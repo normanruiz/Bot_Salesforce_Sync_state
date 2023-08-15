@@ -80,3 +80,4 @@ class ServiciosTerminales:
             mensaje = f" {'-' * 128}"
             self.log.escribir(mensaje, tiempo=False)
             return estado
+

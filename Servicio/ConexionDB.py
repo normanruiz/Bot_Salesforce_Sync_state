@@ -39,7 +39,7 @@ class ConexionDB:
                                  f'UID={usuario};' \
                                  f'PWD={contrasenia};' \
                                  f'TrustServerCertificate=yes;'
-            self.log.escribir(f"Cadena de conexion: {cadena_de_conexion}")
+            #self.log.escribir(f"Cadena de conexion: {cadena_de_conexion}")
             self.conexion = pyodbc.connect(cadena_de_conexion)
             mensaje = f"Conexion establecida con base de datos {database}..."
             self.log.escribir(mensaje)

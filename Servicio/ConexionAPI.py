@@ -1,8 +1,6 @@
 import json
-
 import requests
-
-from Modelo.Terminal import Terminal
+import time
 
 
 class ConexionAPI:
@@ -56,26 +54,54 @@ class ConexionAPI:
     def consultar(self):
         estado = True
         datos = {}
+
         try:
             mensaje = f"Consultando datos..."
             self.log.escribir(mensaje)
 
-            url = f"{self.api.instanceUrl}/services/data/{self.api.version}/query/?q={self.api.select}"
-
-            payload = {}
+            url = f"{self.api.instanceUrl}/services/data/{self.api.version}/jobs/query"
+            payload = json.dumps({
+                "operation": "query",
+                "query": f"{self.api.select}"
+            })
             headers = {
-                'Authorization': f"Bearer {self.api.token}",
+                'Authorization': f'Bearer {self.api.token}',
+                'Content-Type': 'application/json',
                 'Cookie': 'BrowserId=Gug6ojh1Ee6d15VXoMqV4g; CookieConsentPolicy=0:1; LSKey-c$CookieConsentPolicy=0:1'
             }
-
-            response = requests.request("GET", url, headers=headers, data=payload)
+            response = requests.request("POST", url, headers=headers, data=payload)
             resultado = json.loads(response.text)
+            if resultado["state"] != 'UploadComplete':
+                raise Exception('Fallo la recoleccion de datos en el primer paso.')
+            else:
+                jobId = resultado['id']
 
-            for record in resultado["records"]:
-                terminal = Terminal()
-                terminal.numero = record["Externalid__c"]
-                terminal.estado = record["FS_Estado_migracion__c"]
-                datos[terminal.numero] = terminal
+            url = f"{self.api.instanceUrl}/services/data/{self.api.version}/jobs/query/{jobId}"
+            payload = {}
+            headers = {
+                'Authorization': f'Bearer {self.api.token}',
+                'Cookie': 'BrowserId=Gug6ojh1Ee6d15VXoMqV4g; CookieConsentPolicy=0:1; LSKey-c$CookieConsentPolicy=0:1'
+            }
+            response = requests.request("GET", url, headers=headers, data=payload)
+            while response == 'InProgress':
+                time.sleep(20)
+                response = requests.request("GET", url, headers=headers, data=payload)
+
+            url = f"{self.api.instanceUrl}/services/data/{self.api.version}/jobs/query/{jobId}/results"
+            payload = {}
+            headers = {
+                'Authorization': f'Bearer {self.api.token}',
+                'Cookie': 'BrowserId=Gug6ojh1Ee6d15VXoMqV4g; CookieConsentPolicy=0:1; LSKey-c$CookieConsentPolicy=0:1'
+            }
+            response = requests.request("GET", url, headers=headers, data=payload)
+            resultado_texto = response.text
+            resultado_filtrado = resultado_texto.split('\n')
+            datos = {}
+            for registro in resultado_filtrado:
+                dato = registro.split(',')
+                if dato[0].replace('"', '') != '':
+                    if dato[0].replace('"', '') != 'Externalid__c':
+                        datos[dato[0].replace('"', '')] = None if dato[1] == '""' else dato[1].replace('"', '')
 
             mensaje = f"Datos obtenidos: {len(datos)} registros..."
             self.log.escribir(mensaje)
