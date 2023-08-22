@@ -13,7 +13,6 @@ class Bot:
         self._datos_salsforce = {}
         self._terminales = {}
 
-
     @property
     def estado(self):
         return self._estado
@@ -88,6 +87,14 @@ class Bot:
             servicios_terminales = ServiciosTerminales(log, self.datos_ater, self.datos_salesforce)
             self.terminales = servicios_terminales.filtrar()
             if self.terminales is False:
+                return
+
+            self.estado = servicios_ater.actualizarterminales(servicios_terminales.filtrar_estado(11))
+            if self.estado is False:
+                return
+
+            self.estado = servicios_salesforce.actualizarterminales(servicios_terminales.filtrar_estado(0))
+            if self.estado is False:
                 return
 
         except Exception as excepcion:

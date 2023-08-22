@@ -111,3 +111,101 @@ class ConexionAPI:
             self.log.escribir(mensaje)
         finally:
             return datos if estado else estado
+
+    def actualizar(self, file_datos_csv):
+        estado = True
+        datos_actualizados = {}
+        datos_fallidos = {}
+        try:
+            mensaje = f"Actualizando registros..."
+            self.log.escribir(mensaje)
+
+            # Paso 1: Generar pedido de ingesta
+            url = f"{self.api.instanceUrl}/services/data/{self.api.version}/jobs/ingest"
+            payload = json.dumps({
+                "object": "Asset",
+                "externalIdFieldName": "Externalid__c",
+                "columnDelimiter": "COMMA",
+                "operation": "upsert",
+                "lineEnding": "LF"
+            })
+            headers = {
+                'Authorization': f'Bearer {self.api.token}',
+                'Content-Type': 'application/json',
+                'Cookie': 'BrowserId=Gug6ojh1Ee6d15VXoMqV4g; CookieConsentPolicy=0:1; LSKey-c$CookieConsentPolicy=0:1'
+            }
+            response = requests.request("POST", url, headers=headers, data=payload)
+            resultado = json.loads(response.text)
+            if resultado["state"] != 'Open':
+                raise Exception('Fallo la creacion del job.')
+            else:
+                jobId = resultado['id']
+
+            # Paso 2: Subir datos al job
+            url = f"{self.api.instanceUrl}/services/data/{self.api.version}/jobs/ingest/{jobId}/batches"
+            payload = file_datos_csv
+            headers = {
+                'Authorization': f'Bearer {self.api.token}',
+                'Content-Type': 'text/csv',
+                'Cookie': 'BrowserId=Gug6ojh1Ee6d15VXoMqV4g; CookieConsentPolicy=0:1; LSKey-c$CookieConsentPolicy=0:1'
+                }
+            response = requests.request("PUT", url, headers=headers, data=payload)
+
+            # Paso 3: Relizar la ingesta
+            url = f"{self.api.instanceUrl}/services/data/{self.api.version}/jobs/ingest/{jobId}"
+            payload = json.dumps({
+                "state": "UploadComplete"
+            })
+            headers = {
+                'Authorization': f'Bearer {self.api.token}',
+                'Content-Type': 'application/json',
+                'Cookie': 'BrowserId=Gug6ojh1Ee6d15VXoMqV4g; CookieConsentPolicy=0:1; LSKey-c$CookieConsentPolicy=0:1'
+            }
+            response = requests.request("PATCH", url, headers=headers, data=payload)
+
+            # Paso 4: Montorera estado del job
+            url = f"{self.api.instanceUrl}/services/data/{self.api.version}/jobs/ingest/{jobId}"
+            payload = {}
+            headers = {
+                'Authorization': f'Bearer {self.api.token}',
+                'Cookie': 'BrowserId=Gug6ojh1Ee6d15VXoMqV4g; CookieConsentPolicy=0:1; LSKey-c$CookieConsentPolicy=0:1'
+            }
+            response = requests.request("GET", url, headers=headers, data=payload)
+            resultado = json.loads(response.text)
+            while resultado['state'] == 'InProgress':
+                time.sleep(20)
+                response = requests.request("GET", url, headers=headers, data=payload)
+                resultado = json.loads(response.text)
+                print(response.text)
+            print(jobId)
+
+            # Paso 5: Obtener resultados exitosos
+            url = f"{self.api.instanceUrl}/services/data/{self.api.version}/jobs/ingest/{jobId}/successfulResults"
+            payload = {}
+            headers = {
+                'Authorization': f'Bearer {self.api.token}',
+                'Cookie': 'BrowserId=Gug6ojh1Ee6d15VXoMqV4g; CookieConsentPolicy=0:1; LSKey-c$CookieConsentPolicy=0:1'
+            }
+            response = requests.request("GET", url, headers=headers, data=payload)
+            print(response.text)
+
+            # Paso 6: Obtener resultados fallidos
+            url = f"{self.api.instanceUrl}/services/data/{self.api.version}/jobs/ingest/{jobId}/failedResults"
+            payload = {}
+            headers = {
+                'Authorization': f'Bearer {self.api.token}',
+                'Cookie': 'BrowserId=Gug6ojh1Ee6d15VXoMqV4g; CookieConsentPolicy=0:1; LSKey-c$CookieConsentPolicy=0:1'
+            }
+            response = requests.request("GET", url, headers=headers, data=payload)
+            print(response.text)
+
+            mensaje = f"Datos actualizados: {len(datos_actualizados)} registros..."
+            self.log.escribir(mensaje)
+            mensaje = f"Datos fallidos: {len(datos_fallidos)} registros..."
+            self.log.escribir(mensaje)
+        except Exception as excepcion:
+            estado = False
+            mensaje = f"ERROR - Consultando datos: {type(excepcion)} - {str(excepcion)}"
+            self.log.escribir(mensaje)
+        finally:
+            return (datos_actualizados, datos_fallidos) if estado else estado

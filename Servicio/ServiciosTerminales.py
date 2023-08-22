@@ -46,6 +46,10 @@ class ServiciosTerminales:
 
             self.terminales = self.datos_ater
             for numero, terminal in self.terminales.items():
+                if numero in self.datos_salesforce.keys():
+                    self.terminales[numero].estado = self.datos_salesforce[numero].estado
+                else:
+                    self.terminales[numero].estado = None
                 if terminal.estado == 0:
                     estado_0 += 1
                 elif terminal.estado == 10:
@@ -54,10 +58,6 @@ class ServiciosTerminales:
                     estado_11 += 1
                 else:
                     informar += 1
-                if numero in self.datos_salesforce.keys():
-                    self.terminales[numero].estado = self.datos_salesforce[numero].estado
-                else:
-                    self.terminales[numero].estado = None
 
             mensaje = f"Terminales detectadas con estado 0: {estado_0}"
             self.log.escribir(mensaje)
@@ -81,3 +81,31 @@ class ServiciosTerminales:
             self.log.escribir(mensaje, tiempo=False)
             return estado
 
+    def filtrar_estado(self, estados=None):
+        estado = True
+        terminales = {}
+        try:
+            if estados is None:
+                for numero, terminal in self.terminales.items():
+                    if terminal.estado is None or terminal.estado not in [0, 10, 11]:
+                        terminales[terminal.numero] = terminal
+            elif estados == 0:
+                for numero, terminal in self.terminales.items():
+                    if terminal.estado == 0:
+                        terminales[terminal.numero] = terminal
+            elif estados == 11:
+                for numero, terminal in self.terminales.items():
+                    if terminal.estado == 11:
+                        terminales[terminal.numero] = terminal
+
+        except Exception as excepcion:
+            estado = False
+            mensaje = f"ERROR - Filtrando terminales con estado {estado}: {str(excepcion)}"
+            self.log.escribir(mensaje)
+            mensaje = f"WARNING!!! - Subproceso interrumpido..."
+            self.log.escribir(mensaje)
+        finally:
+            if estado is False:
+                return False
+            else:
+                return terminales

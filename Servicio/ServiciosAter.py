@@ -6,7 +6,8 @@ class ServiciosAter:
     def __init__(self, log, configuracion):
         self._log = log
         self._configuracion = configuracion
-        self.terminales = {}
+        self._terminales = {}
+        self._terminales_update = {}
 
     @property
     def log(self):
@@ -15,6 +16,22 @@ class ServiciosAter:
     @property
     def configuracion(self):
         return self._configuracion
+
+    @property
+    def terminales(self):
+        return self._terminales
+
+    @terminales.setter
+    def terminales(self, terminales):
+        self._terminales = terminales
+
+    @property
+    def terminales_update(self):
+        return self._terminales_update
+
+    @terminales_update.setter
+    def terminales_update(self, terminales_update):
+        self._terminales_update = terminales_update
 
     def buscarterminales(self):
         estado = True
@@ -53,3 +70,41 @@ class ServiciosAter:
                 return False
             else:
                 return self.terminales
+
+    def actualizarterminales(self, terminales):
+        estado = True
+        datos_update = []
+        self.terminales_update = terminales
+        try:
+            mensaje = f"Actualizando terminales con estado 11..."
+            self.log.escribir(mensaje)
+
+            if len(self.terminales_update) > 0:
+                for numero, terminal in self.terminales_update.items():
+                    datos_update.append(terminal.to_update())
+                datos_conexion = self.configuracion.conexiones[0]
+                conexion = ConexionDB(self.log)
+                conexion.conectar(datos_conexion.driver, datos_conexion.server,
+                                  datos_conexion.database, datos_conexion.username,
+                                  datos_conexion.password)
+                conexion.ejecutar_update(datos_conexion.update, tuple(datos_update))
+                conexion.desconectar()
+
+            else:
+                mensaje = f"Lote vacio, no hay terminales para actualizar..."
+                self.log.escribir(mensaje)
+
+            mensaje = f"Subproceso finalizado..."
+            self.log.escribir(mensaje)
+        except Exception as excepcion:
+            estado = False
+            mensaje = f"Error - Actualizando terminales con estado 11: {str(excepcion)}"
+            self.log.escribir(mensaje)
+            mensaje = f" {'-' * 128}"
+            self.log.escribir(mensaje, tiempo=False)
+            mensaje = f"WARNING!!! - Subproceso interrumpido..."
+            self.log.escribir(mensaje)
+        finally:
+            mensaje = f" {'-' * 128}"
+            self.log.escribir(mensaje, tiempo=False)
+            return estado
