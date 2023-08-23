@@ -50,6 +50,7 @@ class ServiciosTerminales:
                     self.terminales[numero].estado = self.datos_salesforce[numero].estado
                 else:
                     self.terminales[numero].estado = None
+            for numero, terminal in self.terminales.items():
                 if terminal.estado == 0:
                     estado_0 += 1
                 elif terminal.estado == 10:
@@ -81,21 +82,29 @@ class ServiciosTerminales:
             self.log.escribir(mensaje, tiempo=False)
             return estado
 
-    def filtrar_estado(self, estados=None):
+    def filtrar_estado(self, estados):
         estado = True
         terminales = {}
         try:
             if estados is None:
                 for numero, terminal in self.terminales.items():
-                    if terminal.estado is None or terminal.estado not in [0, 10, 11]:
+                    if terminal.numero not in self.datos_salesforce.keys():
                         terminales[terminal.numero] = terminal
             elif estados == 0:
                 for numero, terminal in self.terminales.items():
                     if terminal.estado == 0:
                         terminales[terminal.numero] = terminal
+            elif estados == 10:
+                for numero, terminal in self.terminales.items():
+                    if terminal.estado == 10:
+                        terminales[terminal.numero] = terminal
             elif estados == 11:
                 for numero, terminal in self.terminales.items():
                     if terminal.estado == 11:
+                        terminales[terminal.numero] = terminal
+            elif estados == 'invalido':
+                for numero, terminal in self.terminales.items():
+                    if terminal.estado not in [0, 10, 11, None]:
                         terminales[terminal.numero] = terminal
 
         except Exception as excepcion:

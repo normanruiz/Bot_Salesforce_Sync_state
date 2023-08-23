@@ -1,6 +1,7 @@
 from Modelo.Configuracion import Configuracion
 from Servicio.Log import Log
 from Servicio.ServiciosAter import ServiciosAter
+from Servicio.ServiciosReporte import ServiciosReporte
 from Servicio.ServiciosSalesfoce import ServiciosSalesforce
 from Servicio.ServiciosTerminales import ServiciosTerminales
 
@@ -8,6 +9,7 @@ from Servicio.ServiciosTerminales import ServiciosTerminales
 class Bot:
     def __init__(self):
         self._estado = True
+        self._log = None
         self._configuracion = None
         self._datos_ater = {}
         self._datos_salsforce = {}
@@ -20,6 +22,14 @@ class Bot:
     @estado.setter
     def estado(self, estado):
         self._estado = estado
+
+    @property
+    def log(self):
+        return self._log
+
+    @log.setter
+    def log(self, log):
+        self._log = log
 
     @property
     def configuracion(self):
@@ -55,36 +65,36 @@ class Bot:
 
     def iniciar(self):
         status_code = 0
-        log = Log()
+        self.log = Log()
         try:
-            log.verificar_archivo_log()
+            self.log.verificar_archivo_log()
             mensaje = f" {'='*128 }"
-            log.escribir(mensaje, tiempo=False)
+            self.log.escribir(mensaje, tiempo=False)
             mensaje = f"Iniciando Bot Salesforce Sync State..."
-            log.escribir(mensaje)
+            self.log.escribir(mensaje)
             mensaje = f" {'~'*128 }"
-            log.escribir(mensaje, tiempo=False)
+            self.log.escribir(mensaje, tiempo=False)
 
-            configuracion = Configuracion(log)
+            configuracion = Configuracion(self.log)
             configuracion.cargar()
             self.configuracion = configuracion
             self.estado = self.configuracion.bot.estado
             if not self.estado:
                 mensaje = f"Bot apagado por configuracion..."
-                log.escribir(mensaje)
+                self.log.escribir(mensaje)
                 return
 
-            servicios_ater = ServiciosAter(log, self.configuracion)
+            servicios_ater = ServiciosAter(self.log, self.configuracion)
             self.datos_ater = servicios_ater.buscarterminales()
             if self.datos_ater is False:
                 return
 
-            servicios_salesforce = ServiciosSalesforce(log, self.configuracion)
+            servicios_salesforce = ServiciosSalesforce(self.log, self.configuracion)
             self.datos_salesforce = servicios_salesforce.buscarterminales()
             if self.datos_salesforce is False:
                 return
 
-            servicios_terminales = ServiciosTerminales(log, self.datos_ater, self.datos_salesforce)
+            servicios_terminales = ServiciosTerminales(self.log, self.datos_ater, self.datos_salesforce)
             self.terminales = servicios_terminales.filtrar()
             if self.terminales is False:
                 return
@@ -97,25 +107,29 @@ class Bot:
             if self.estado is False:
                 return
 
+            servicios_reporte = ServiciosReporte(self.log, self.configuracion)
+            self.estado = servicios_reporte.generar_reporte(servicios_terminales.filtrar_estado(10), servicios_terminales.filtrar_estado(11), servicios_terminales.filtrar_estado(0), servicios_terminales.filtrar_estado(None), servicios_terminales.filtrar_estado('invalido'))
+            if self.estado is False:
+                return
+
         except Exception as excepcion:
             status_code = 1
             mensaje = f" {'-'*128 }"
-            log.escribir(mensaje, tiempo=False)
+            self.log.escribir(mensaje, tiempo=False)
             mensaje = f"ERROR - Ejecucion principal: {str(excepcion)}"
-            log.escribir(mensaje)
+            self.log.escribir(mensaje)
         finally:
             if not self.estado:
                 mensaje = f" {'-' * 128}"
-                log.escribir(mensaje, tiempo=False)
+                self.log.escribir(mensaje, tiempo=False)
                 mensaje = f"WARNING!!! - Proceso principal interrumpido, no se realizaran mas acciones..."
-                log.escribir(mensaje)
+                self.log.escribir(mensaje)
 
             mensaje = f" {'~' * 128}"
-            log.escribir(mensaje, tiempo=False)
+            self.log.escribir(mensaje, tiempo=False)
             mensaje = f"Finalizando Bot Salesforce Sync State..."
-            log.escribir(mensaje)
+            self.log.escribir(mensaje)
             mensaje = f" {'='*128 }"
-            log.escribir(mensaje, tiempo=False)
-            log.cerrar()
-            del log
+            self.log.escribir(mensaje, tiempo=False)
+            self.log.cerrar()
             return status_code

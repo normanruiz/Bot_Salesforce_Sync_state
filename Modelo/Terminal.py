@@ -26,5 +26,5 @@ class Terminal:
         else:
             self._estado = estado
 
-    def to_update(self):
-        return (self.estado, self.numero)
+    def to_update_ater(self):
+        return (11, self.numero)

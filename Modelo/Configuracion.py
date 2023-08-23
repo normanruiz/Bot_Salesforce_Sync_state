@@ -53,7 +53,7 @@ class Configuracion:
                                    config["parametros"]["conexiones_db"]["select"],
                                    config["parametros"]["conexiones_db"]["update"])
             self.conexiones.append(conexion_db)
-            api_salesforce = Api(config["parametros"]["api_salesforce"]["org"],
+            api_salesforce = ApiSalesforce(config["parametros"]["api_salesforce"]["org"],
                                  config["parametros"]["api_salesforce"]["client_id"],
                                  config["parametros"]["api_salesforce"]["client_secret"],
                                  config["parametros"]["api_salesforce"]["username"],
@@ -61,6 +61,12 @@ class Configuracion:
                                  config["parametros"]["api_salesforce"]["version"],
                                  config["parametros"]["api_salesforce"]["select"])
             self.conexiones.append(api_salesforce)
+            api_teams = ApiTeams(config["parametros"]["api_teams"]["subject"],
+                                 config["parametros"]["api_teams"]["from"],
+                                 config["parametros"]["api_teams"]["to"],
+                                 config["parametros"]["api_teams"]["ip"],
+                                 config["parametros"]["api_teams"]["port"])
+            self.conexiones.append(api_teams)
             mensaje = f"Configuracion cargada correctamente..."
             self.log.escribir(mensaje)
             mensaje = f"Subproceso finalizado..."
@@ -203,7 +209,7 @@ class Conexion:
     def update(self, update):
         self._update = update
 
-class Api:
+class ApiSalesforce:
     def __init__(self, org=None, client_id=None, client_secret=None, username=None, password=None, version=None, select=None):
         self._org = org
         self._client_id = client_id
@@ -286,3 +292,51 @@ class Api:
     @select.setter
     def select(self, select):
         self._select = select
+
+class ApiTeams:
+    def __init__(self, subject=None, de=None, to=None, ip=None, port=None):
+        self._subject = subject
+        self._de = de
+        self._to = to
+        self._ip = ip
+        self._port = port
+
+    @property
+    def subject(self):
+        return self._subject
+
+    @subject.setter
+    def subject(self, subject):
+        self._subject = subject
+
+    @property
+    def de(self):
+        return self._de
+
+    @de.setter
+    def de(self, de):
+        self._de = de
+
+    @property
+    def to(self):
+        return self.to
+
+    @to.setter
+    def to(self, to):
+        self._to = to
+
+    @property
+    def ip(self):
+        return self._ip
+
+    @ip.setter
+    def ip(self, ip):
+        self._ip = ip
+
+    @property
+    def port(self):
+        return self._port
+
+    @port.setter
+    def port(self, port):
+        self._port = port

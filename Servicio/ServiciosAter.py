@@ -81,7 +81,7 @@ class ServiciosAter:
 
             if len(self.terminales_update) > 0:
                 for numero, terminal in self.terminales_update.items():
-                    datos_update.append(terminal.to_update())
+                    datos_update.append(terminal.to_update_ater())
                 datos_conexion = self.configuracion.conexiones[0]
                 conexion = ConexionDB(self.log)
                 conexion.conectar(datos_conexion.driver, datos_conexion.server,
