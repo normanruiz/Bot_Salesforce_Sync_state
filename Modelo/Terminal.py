@@ -1,7 +1,8 @@
 class Terminal:
-    def __init__(self, numero=None, estado=None):
+    def __init__(self, numero=None, estado=None, merchant=None):
         self._numero = numero
         self._estado = estado
+        self._merchant = merchant
 
     @property
     def numero(self):
@@ -25,6 +26,14 @@ class Terminal:
             self._estado = 10
         else:
             self._estado = estado
+
+    @property
+    def merchant(self):
+        return self._merchant
+
+    @merchant.setter
+    def merchant(self, merchant):
+        self._merchant = merchant
 
     def to_update_ater(self):
         return (11, self.numero)

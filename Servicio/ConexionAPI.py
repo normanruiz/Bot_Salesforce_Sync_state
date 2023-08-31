@@ -114,8 +114,8 @@ class ConexionAPI:
 
     def actualizar(self, file_datos_csv):
         estado = True
-        datos_actualizados = {}
-        datos_fallidos = {}
+        datos_actualizados = []
+        datos_fallidos = []
         try:
             mensaje = f"Actualizando registros..."
             self.log.escribir(mensaje)
@@ -176,8 +176,6 @@ class ConexionAPI:
                 time.sleep(20)
                 response = requests.request("GET", url, headers=headers, data=payload)
                 resultado = json.loads(response.text)
-                print(response.text)
-            print(jobId)
 
             # Paso 5: Obtener resultados exitosos
             url = f"{self.api.instanceUrl}/services/data/{self.api.version}/jobs/ingest/{jobId}/successfulResults"
@@ -187,7 +185,13 @@ class ConexionAPI:
                 'Cookie': 'BrowserId=Gug6ojh1Ee6d15VXoMqV4g; CookieConsentPolicy=0:1; LSKey-c$CookieConsentPolicy=0:1'
             }
             response = requests.request("GET", url, headers=headers, data=payload)
-            print(response.text)
+            data_aux = response.text.split('\n')
+            for registro in data_aux:
+                registro_aux = registro.split(',')
+                if registro_aux[0] in ['"sf__Id"', '']:
+                    continue
+                else:
+                    datos_actualizados.append(registro_aux[2].replace('"', ''))
 
             # Paso 6: Obtener resultados fallidos
             url = f"{self.api.instanceUrl}/services/data/{self.api.version}/jobs/ingest/{jobId}/failedResults"
@@ -197,7 +201,13 @@ class ConexionAPI:
                 'Cookie': 'BrowserId=Gug6ojh1Ee6d15VXoMqV4g; CookieConsentPolicy=0:1; LSKey-c$CookieConsentPolicy=0:1'
             }
             response = requests.request("GET", url, headers=headers, data=payload)
-            print(response.text)
+            data_aux = response.text.split('\n')
+            for registro in data_aux:
+                registro_aux = registro.split(',')
+                if registro_aux[0] in ['"sf__Id"', '']:
+                    continue
+                else:
+                    datos_fallidos.append(registro_aux[2].replace('"', ''))
 
             mensaje = f"Datos actualizados: {len(datos_actualizados)} registros..."
             self.log.escribir(mensaje)
@@ -208,4 +218,4 @@ class ConexionAPI:
             mensaje = f"ERROR - Consultando datos: {type(excepcion)} - {str(excepcion)}"
             self.log.escribir(mensaje)
         finally:
-            return (datos_actualizados, datos_fallidos) if estado else estado
+            return (estado, datos_actualizados, datos_fallidos)

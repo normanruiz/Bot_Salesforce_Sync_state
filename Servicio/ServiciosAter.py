@@ -44,14 +44,18 @@ class ServiciosAter:
             conexion.conectar(datos_conexion.driver, datos_conexion.server,
                               datos_conexion.database, datos_conexion.username,
                               datos_conexion.password)
-            dataset_origen = conexion.ejecutar_select(datos_conexion.select)
+
+            dataset_terminales = conexion.ejecutar_select(datos_conexion.select_terminales)
+            dataset_merchants = conexion.ejecutar_select(datos_conexion.select_merchants)
             conexion.desconectar()
-            if len(dataset_origen) == 0:
-                raise Exception('La tabla de origen se encuentra vacia o no se encontraron registros.')
-            for registro in dataset_origen:
+
+            for registro in dataset_terminales:
                 terminal = Terminal()
                 terminal.numero = registro[0]
                 self.terminales[terminal.numero] = terminal
+            for registro in dataset_merchants:
+                self.terminales[registro[0]].merchant = registro[1]
+
             mensaje = f"Registros recuperados: {len(self.terminales)}"
             self.log.escribir(mensaje)
 
@@ -76,7 +80,7 @@ class ServiciosAter:
         datos_update = []
         self.terminales_update = terminales
         try:
-            mensaje = f"Actualizando terminales con estado 11..."
+            mensaje = f"Actualizando terminales con estado 11 en ater..."
             self.log.escribir(mensaje)
 
             if len(self.terminales_update) > 0:
@@ -98,7 +102,7 @@ class ServiciosAter:
             self.log.escribir(mensaje)
         except Exception as excepcion:
             estado = False
-            mensaje = f"Error - Actualizando terminales con estado 11: {str(excepcion)}"
+            mensaje = f"Error - Actualizando terminales con estado 11 en ater: {str(excepcion)}"
             self.log.escribir(mensaje)
             mensaje = f" {'-' * 128}"
             self.log.escribir(mensaje, tiempo=False)

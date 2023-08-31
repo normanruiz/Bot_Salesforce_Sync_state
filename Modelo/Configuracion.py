@@ -33,6 +33,7 @@ class Configuracion:
         self._conexiones = conexiones
 
     def cargar(self):
+        estado = True
         try:
             mensaje = f"Cargando configuracion..."
             self.log.escribir(mensaje)
@@ -50,7 +51,8 @@ class Configuracion:
                                    config["parametros"]["conexiones_db"]["database"],
                                    config["parametros"]["conexiones_db"]["username"],
                                    config["parametros"]["conexiones_db"]["password"],
-                                   config["parametros"]["conexiones_db"]["select"],
+                                   config["parametros"]["conexiones_db"]["select_terminales"],
+                                   config["parametros"]["conexiones_db"]["select_merchants"],
                                    config["parametros"]["conexiones_db"]["update"])
             self.conexiones.append(conexion_db)
             api_salesforce = ApiSalesforce(config["parametros"]["api_salesforce"]["org"],
@@ -72,6 +74,7 @@ class Configuracion:
             mensaje = f"Subproceso finalizado..."
             self.log.escribir(mensaje)
         except Exception as excepcion:
+            estado = False
             mensaje = f"ERROR - Cargando configuracion: {str(excepcion)}"
             self.log.escribir(mensaje)
             mensaje = f"WARNING!!! - Subproceso interrumpido..."
@@ -79,6 +82,7 @@ class Configuracion:
         finally:
             mensaje = f" {'-' * 128}"
             self.log.escribir(mensaje, tiempo=False)
+            return estado
 
 
 class Autor:
@@ -144,13 +148,14 @@ class Bot:
 
 
 class Conexion:
-    def __init__(self, driver, server, database, username, password, select, update):
+    def __init__(self, driver, server, database, username, password, select_terminales, select_merchants, update):
         self._driver = driver
         self._server = server
         self._database = database
         self._username = username
         self._password = password
-        self._select = select
+        self._select_terminales = select_terminales
+        self._select_merchants = select_merchants
         self._update = update
 
     @property
@@ -194,12 +199,20 @@ class Conexion:
         self._password = password
 
     @property
-    def select(self):
-        return self._select
+    def select_terminales(self):
+        return self._select_terminales
 
-    @select.setter
-    def select(self, select):
-        self._select = select
+    @select_terminales.setter
+    def select_terminales(self, select_terminales):
+        self._select_terminales = select_terminales
+
+    @property
+    def select_merchants(self):
+        return self._select_merchants
+
+    @select_merchants.setter
+    def select_merchants(self, select_merchants):
+        self._select_merchants = select_merchants
 
     @property
     def update(self):

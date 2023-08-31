@@ -71,15 +71,15 @@ class ServiciosSalesforce:
                 return self.terminales
 
     def actualizarterminales(self, terminales):
-        estado = True
         self.terminales_update = terminales
+        datos_respuesta = (True, [], [])
         try:
-            mensaje = f"Actualizando terminales con estado 0..."
+            mensaje = f"Actualizando terminales con estado 0 en salesforce..."
             self.log.escribir(mensaje)
 
-            file_datos_csv = 'Externalid__c,FS_Estado_migracion__c\n'
+            file_datos_csv = 'Externalid__c,FS_Estado_migracion__c,FS_Merchant__c\n'
             for numero, terminal in self.terminales_update.items():
-                file_datos_csv += f"{terminal.numero},10\n"
+                file_datos_csv += f"{terminal.numero},10,{terminal.merchant}\n"
 
             if len(self.terminales_update) > 0:
                 datos_api = self.configuracion.conexiones[1]
@@ -93,8 +93,8 @@ class ServiciosSalesforce:
             mensaje = f"Subproceso finalizado..."
             self.log.escribir(mensaje)
         except Exception as excepcion:
-            estado = False
-            mensaje = f"Error - Actualizando terminales con estado 0: {str(excepcion)}"
+            datos_respuesta = (False, [], [])
+            mensaje = f"Error - Actualizando terminales con estado 0 en salesforce: {str(excepcion)}"
             self.log.escribir(mensaje)
             mensaje = f" {'-' * 128}"
             self.log.escribir(mensaje, tiempo=False)
@@ -103,4 +103,4 @@ class ServiciosSalesforce:
         finally:
             mensaje = f" {'-' * 128}"
             self.log.escribir(mensaje, tiempo=False)
-            return estado
+            return datos_respuesta
