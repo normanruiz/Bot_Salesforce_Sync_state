@@ -63,9 +63,9 @@ class Configuracion:
                                  config["parametros"]["api_salesforce"]["version"],
                                  config["parametros"]["api_salesforce"]["select"])
             self.conexiones.append(api_salesforce)
-            api_teams = ApiTeams(config["parametros"]["api_teams"]["subject"],
-                                 config["parametros"]["api_teams"]["from"],
-                                 config["parametros"]["api_teams"]["to"],
+            api_teams = ApiTeams(config["parametros"]["api_teams"]["asunto"],
+                                 config["parametros"]["api_teams"]["remitente"],
+                                 config["parametros"]["api_teams"]["destinatario"],
                                  config["parametros"]["api_teams"]["ip"],
                                  config["parametros"]["api_teams"]["port"])
             self.conexiones.append(api_teams)
@@ -307,36 +307,36 @@ class ApiSalesforce:
         self._select = select
 
 class ApiTeams:
-    def __init__(self, subject=None, de=None, to=None, ip=None, port=None):
-        self._subject = subject
-        self._de = de
-        self._to = to
+    def __init__(self, asunto=None, remitente=None, destinatario=None, ip=None, port=None):
+        self.asunto = asunto
+        self._remitente = remitente
+        self._destinatario = destinatario
         self._ip = ip
         self._port = port
 
     @property
-    def subject(self):
-        return self._subject
+    def asunto(self):
+        return self._asunto
 
-    @subject.setter
-    def subject(self, subject):
-        self._subject = subject
-
-    @property
-    def de(self):
-        return self._de
-
-    @de.setter
-    def de(self, de):
-        self._de = de
+    @asunto.setter
+    def asunto(self, asunto):
+        self._asunto = asunto
 
     @property
-    def to(self):
-        return self.to
+    def remitente(self):
+        return self._remitente
 
-    @to.setter
-    def to(self, to):
-        self._to = to
+    @remitente.setter
+    def remitente(self, remitente):
+        self._remitente = remitente
+
+    @property
+    def destinatario(self):
+        return self._destinatario
+
+    @destinatario.setter
+    def destinatario(self, destinatario):
+        self._destinatario = destinatario
 
     @property
     def ip(self):

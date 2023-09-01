@@ -3,7 +3,6 @@ from datetime import date
 import time
 from email.message import EmailMessage
 import smtplib
-import sys
 
 
 class ServiciosReporte:
@@ -30,12 +29,13 @@ class ServiciosReporte:
 
     def generar_reporte(self, terminales_omitidas, terminales_ater, terminales_salesforce_ok, terminales_salesforce_fail, terminales_inexistentes, terminales_invalidas):
         estado = True
-        archivo = f"Reporte-{date.today()}"
+        datos_conexion = self.configuracion.conexiones[2]
+        file = f"Reporte-{date.today()}"
         try:
             mensaje = f"Generando reporte..."
             self.log.escribir(mensaje)
 
-            with open(f"{archivo}.html", "w", encoding="utf8") as archivo:
+            with open(f"{file}.html", "w", encoding="utf8") as archivo:
                 archivo.write(f"<!DOCTYPE html>\n")
                 archivo.write(f"<head>\n")
                 archivo.write(f"<html lang=\"en\">\n")
@@ -195,23 +195,21 @@ class ServiciosReporte:
                     archivo.write(f"\t\t</tbody>\n")
                     archivo.write(f"\t</table><hr>\n")
 
-            self.archivo = archivo
-
-            asunto = self.configuracion.conexiones[2].subject
-            remitente = self.configuracion.conexiones[2].de
-            destinatario = self.configuracion.conexiones[2].to
+            asunto = datos_conexion.asunto
+            remitente = datos_conexion.remitente
+            destinatario = datos_conexion.destinatario
             email = EmailMessage()
             email["From"] = remitente
             email["To"] = destinatario
             email["Subject"] = asunto
-            with open(f"{self.archivo}.html", "rb") as f:
+            with open(f"{file}.html", "rb") as f:
                 email.add_attachment(
                     f.read(),
-                    filename=f"{self.archivo}.html",
+                    filename=f"{file}.html",
                     maintype="text",
                     subtype="html"
                 )
-            s = smtplib.SMTP(self.configuracion.conexiones[2].ip, self.configuracion.conexiones[2].port)
+            s = smtplib.SMTP(datos_conexion.ip, datos_conexion.port)
             s.send_message(email)
             s.quit()
 
