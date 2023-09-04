@@ -129,7 +129,7 @@ class Bot:
                 return
 
             servicios_reporte = ServiciosReporte(self.log, self.configuracion)
-            self.estado = servicios_reporte.generar_reporte(servicios_terminales.filtrar_estado(10), servicios_terminales.filtrar_estado(11), self._terminales_salesforce_ok, self._terminales_salesforce_fail, servicios_terminales.filtrar_estado(None), servicios_terminales.filtrar_estado('invalido'))
+            self.estado = servicios_reporte.generar_reporte(servicios_terminales.filtrar_estado(10), servicios_terminales.filtrar_estado(11), self._terminales_salesforce_ok, self._terminales_salesforce_fail, servicios_terminales.filtrar_estado(None), servicios_terminales.filtrar_estado('invalido'), servicios_terminales.terminales_fail_merchant)
             if self.estado is False:
                 return
 

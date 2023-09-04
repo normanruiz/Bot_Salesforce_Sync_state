@@ -5,6 +5,7 @@ class ServiciosTerminales:
         self._datos_ater = datos_ater
         self._datos_salesforce = datos_salesforce
         self._terminales = {}
+        self._terminales_fail_merchant = {}
 
     @property
     def log(self):
@@ -34,6 +35,14 @@ class ServiciosTerminales:
     def terminales(self, terminales):
         self._terminales = terminales
 
+    @property
+    def terminales_fail_merchant(self):
+        return self._terminales_fail_merchant
+
+    @terminales_fail_merchant.setter
+    def terminales_fail_merchant(self, terminales_fail_merchant):
+        self._terminales_fail_merchant = terminales_fail_merchant
+
     def filtrar(self):
         estado = True
         estado_0 = 0
@@ -52,7 +61,10 @@ class ServiciosTerminales:
                     self.terminales[numero].estado = None
             for numero, terminal in self.terminales.items():
                 if terminal.estado == 0:
-                    estado_0 += 1
+                    if terminal.merchant in [-1, None]:
+                        self.terminales_fail_merchant[numero] = terminal
+                    else:
+                        estado_0 += 1
                 elif terminal.estado == 10:
                     estado_10 += 1
                 elif terminal.estado == 11:
@@ -92,7 +104,7 @@ class ServiciosTerminales:
                         terminales[terminal.numero] = terminal
             elif estados == 0:
                 for numero, terminal in self.terminales.items():
-                    if terminal.estado == 0:
+                    if terminal.estado == 0 and terminal.merchant not in [-1, None]:
                         terminales[terminal.numero] = terminal
             elif estados == 10:
                 for numero, terminal in self.terminales.items():
