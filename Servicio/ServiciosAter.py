@@ -54,7 +54,8 @@ class ServiciosAter:
                 terminal.numero = registro[0]
                 self.terminales[terminal.numero] = terminal
             for registro in dataset_merchants:
-                self.terminales[registro[0]].merchant = registro[1]
+                if registro[0] in self.terminales:
+                    self.terminales[registro[0]].merchant = str(registro[1])
 
             mensaje = f"Registros recuperados: {len(self.terminales)}"
             self.log.escribir(mensaje)

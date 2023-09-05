@@ -5,6 +5,11 @@ class ServiciosTerminales:
         self._datos_ater = datos_ater
         self._datos_salesforce = datos_salesforce
         self._terminales = {}
+        self._terminales_estado_0 = {}
+        self._terminales_estado_10 = {}
+        self._terminales_estado_11 = {}
+        self._terminales_estado_none = {}
+        self._terminales_fail = {}
         self._terminales_fail_merchant = {}
 
     @property
@@ -36,6 +41,45 @@ class ServiciosTerminales:
         self._terminales = terminales
 
     @property
+    def terminales_estado_0(self):
+        return self._terminales_estado_0
+
+    @terminales_estado_0.setter
+    def terminales_estado_0(self, terminales_estado_0):
+        self._terminales_estado_0 = terminales_estado_0
+
+    @property
+    def terminales_estado_10(self):
+        return self._terminales_estado_10
+
+    @terminales_estado_10.setter
+    def terminales_estado_10(self, terminales_estado_10):
+        self._terminales_estado_10 = terminales_estado_10
+
+    @property
+    def terminales_estado_11(self):
+        return self._terminales_estado_11
+
+    @terminales_estado_11.setter
+    def terminales_estado_11(self, terminales_estado_11):
+        self._terminales_estado_11 = terminales_estado_11
+
+    @property
+    def terminales_estado_none(self):
+        return self._terminales_estado_none
+
+    @terminales_estado_none.setter
+    def terminales_estado_none(self, terminales_estado_none):
+        self._terminales_estado_none = terminales_estado_none
+    @property
+    def terminales_fail(self):
+        return self._terminales_fail
+
+    @terminales_fail.setter
+    def terminales_fail(self, terminales_fail):
+        self._terminales_fail = terminales_fail
+
+    @property
     def terminales_fail_merchant(self):
         return self._terminales_fail_merchant
 
@@ -45,10 +89,6 @@ class ServiciosTerminales:
 
     def filtrar(self):
         estado = True
-        estado_0 = 0
-        estado_10 = 0
-        estado_11 = 0
-        informar = 0
         try:
             mensaje = f"Procesando terminales..."
             self.log.escribir(mensaje)
@@ -59,26 +99,29 @@ class ServiciosTerminales:
                     self.terminales[numero].estado = self.datos_salesforce[numero].estado
                 else:
                     self.terminales[numero].estado = None
+
             for numero, terminal in self.terminales.items():
                 if terminal.estado == 0:
-                    if terminal.merchant in [-1, None]:
+                    if terminal.merchant in ['-1', None]:
                         self.terminales_fail_merchant[numero] = terminal
                     else:
-                        estado_0 += 1
+                        self.terminales_estado_0[numero] = terminal
                 elif terminal.estado == 10:
-                    estado_10 += 1
+                    self.terminales_estado_10[numero] = terminal
                 elif terminal.estado == 11:
-                    estado_11 += 1
+                    self.terminales_estado_11[numero] = terminal
+                elif terminal.estado is None:
+                    self.terminales_estado_none[numero] = terminal
                 else:
-                    informar += 1
+                    self.terminales_fail[numero] = terminal
 
-            mensaje = f"Terminales detectadas con estado 0: {estado_0}"
+            mensaje = f"Terminales detectadas con estado 0: {len(self.terminales_estado_0)}"
             self.log.escribir(mensaje)
-            mensaje = f"Terminales detectadas con estado 10: {estado_10}"
+            mensaje = f"Terminales detectadas con estado 10: {len(self.terminales_estado_10)}"
             self.log.escribir(mensaje)
-            mensaje = f"Terminales detectadas con estado 11: {estado_11}"
+            mensaje = f"Terminales detectadas con estado 11: {len(self.terminales_estado_11)}"
             self.log.escribir(mensaje)
-            mensaje = f"Terminales detectadas con algun fallo: {informar}"
+            mensaje = f"Terminales detectadas con algun fallo: {len(self.terminales_estado_none) + len(self.terminales_fail_merchant)}"
             self.log.escribir(mensaje)
 
             mensaje = f"Subproceso finalizado..."
@@ -93,40 +136,3 @@ class ServiciosTerminales:
             mensaje = f" {'-' * 128}"
             self.log.escribir(mensaje, tiempo=False)
             return estado
-
-    def filtrar_estado(self, estados):
-        estado = True
-        terminales = {}
-        try:
-            if estados is None:
-                for numero, terminal in self.terminales.items():
-                    if terminal.numero not in self.datos_salesforce.keys():
-                        terminales[terminal.numero] = terminal
-            elif estados == 0:
-                for numero, terminal in self.terminales.items():
-                    if terminal.estado == 0 and terminal.merchant not in [-1, None]:
-                        terminales[terminal.numero] = terminal
-            elif estados == 10:
-                for numero, terminal in self.terminales.items():
-                    if terminal.estado == 10:
-                        terminales[terminal.numero] = terminal
-            elif estados == 11:
-                for numero, terminal in self.terminales.items():
-                    if terminal.estado == 11:
-                        terminales[terminal.numero] = terminal
-            elif estados == 'invalido':
-                for numero, terminal in self.terminales.items():
-                    if terminal.estado not in [0, 10, 11, None]:
-                        terminales[terminal.numero] = terminal
-
-        except Exception as excepcion:
-            estado = False
-            mensaje = f"ERROR - Filtrando terminales con estado {estado}: {str(excepcion)}"
-            self.log.escribir(mensaje)
-            mensaje = f"WARNING!!! - Subproceso interrumpido..."
-            self.log.escribir(mensaje)
-        finally:
-            if estado is False:
-                return False
-            else:
-                return terminales

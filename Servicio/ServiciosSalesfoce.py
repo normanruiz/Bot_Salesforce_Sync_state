@@ -8,6 +8,8 @@ class ServiciosSalesforce:
         self._configuracion = configuracion
         self._terminales = {}
         self._terminales_update = {}
+        self._terminales_salesforce_ok = []
+        self._terminales_salesforce_fail = []
 
     @property
     def log(self):
@@ -32,6 +34,22 @@ class ServiciosSalesforce:
     @terminales_update.setter
     def terminales_update(self, terminales_update):
         self._terminales_update = terminales_update
+
+    @property
+    def terminales_salesforce_ok(self):
+        return self._terminales_salesforce_ok
+
+    @terminales_salesforce_ok.setter
+    def terminales_salesforce_ok(self, terminales_salesforce_ok):
+        self._terminales_salesforce_ok = terminales_salesforce_ok
+
+    @property
+    def terminales_salesforce_fail(self):
+        return self._terminales_salesforce_fail
+
+    @terminales_salesforce_fail.setter
+    def terminales_salesforce_fail(self, terminales_salesforce_fail):
+        self._terminales_salesforce_fail = terminales_salesforce_fail
 
     def buscarterminales(self):
         estado = True
@@ -71,21 +89,20 @@ class ServiciosSalesforce:
                 return self.terminales
 
     def actualizarterminales(self, terminales):
+        estado = True
         self.terminales_update = terminales
-        datos_respuesta = (True, [], [])
         try:
             mensaje = f"Actualizando terminales con estado 0 en salesforce..."
             self.log.escribir(mensaje)
 
-            file_datos_csv = 'Externalid__c,FS_Estado_migracion__c,FS_Merchant__c\n'
-            for numero, terminal in self.terminales_update.items():
-                file_datos_csv += f"{terminal.numero},10,{terminal.merchant}\n"
-
             if len(self.terminales_update) > 0:
+                file_datos_csv = 'Externalid__c,FS_Estado_migracion__c,FS_Merchant__c\n'
+                for numero, terminal in self.terminales_update.items():
+                    file_datos_csv += f"{terminal.numero},10,{terminal.merchant}\n"
                 datos_api = self.configuracion.conexiones[1]
                 api_salesforce = ConexionAPI(self.log)
                 api_salesforce.autenticarse(datos_api)
-                datos_respuesta = api_salesforce.actualizar(file_datos_csv)
+                estado, self.terminales_salesforce_ok, self.terminales_salesforce_fail = api_salesforce.actualizar(file_datos_csv)
             else:
                 mensaje = f"Lote vacio, no hay terminales para actualizar..."
                 self.log.escribir(mensaje)
@@ -93,7 +110,7 @@ class ServiciosSalesforce:
             mensaje = f"Subproceso finalizado..."
             self.log.escribir(mensaje)
         except Exception as excepcion:
-            datos_respuesta = (False, [], [])
+            estado = False
             mensaje = f"Error - Actualizando terminales con estado 0 en salesforce: {str(excepcion)}"
             self.log.escribir(mensaje)
             mensaje = f" {'-' * 128}"
@@ -103,4 +120,4 @@ class ServiciosSalesforce:
         finally:
             mensaje = f" {'-' * 128}"
             self.log.escribir(mensaje, tiempo=False)
-            return datos_respuesta
+            return estado

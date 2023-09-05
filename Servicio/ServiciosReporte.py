@@ -27,7 +27,7 @@ class ServiciosReporte:
     def archivo(self, archivo):
         self._archivo = archivo
 
-    def generar_reporte(self, terminales_omitidas, terminales_ater, terminales_salesforce_ok, terminales_salesforce_fail, terminales_inexistentes, terminales_invalidas, terminales_fail_merchant):
+    def generar_reporte(self, terminales_omitidas, terminales_ater, terminales_salesforce_ok, terminales_salesforce_fail, terminales_fail_merchant, terminales_inexistentes, terminales_invalidas):
         estado = True
         datos_conexion = self.configuracion.conexiones[2]
         file = f"Reporte-{date.today()}"
@@ -65,7 +65,7 @@ class ServiciosReporte:
 
                 archivo.write(f"\t<h2 id=\"yellow\">Terminales omitidas con estado 10 en salesforce: {len(terminales_omitidas)}</h2>\n")
                 if len(terminales_omitidas) == 0:
-                    archivo.write(f"\t<p><b>No se detectaron termianles en este estadio.</b></p>\n")
+                    archivo.write(f"\t<p><b>No se detectaron terminales en este estadio.</b></p>\n")
                 else:
                     archivo.write(f"\t<table>\n")
                     archivo.write(f"\t\t<tbody>\n")
@@ -87,7 +87,7 @@ class ServiciosReporte:
 
                 archivo.write(f"\t<hr><h2 id=\"green\">Terminales actulizadas en Ater a estado 11: {len(terminales_ater)}</h2>\n")
                 if len(terminales_ater) == 0:
-                    archivo.write(f"\t<p><b>No se detectaron termianles en este estadio.</b></p>\n")
+                    archivo.write(f"\t<p><b>No se detectaron terminales en este estadio.</b></p>\n")
                 else:
                     archivo.write(f"\t<table>\n")
                     archivo.write(f"\t\t<tbody>\n")
@@ -110,7 +110,7 @@ class ServiciosReporte:
                 archivo.write(f"\t<hr><h2 id=\"orange\">Terminales actualizadas en Salesforce a estado 10: {len(terminales_salesforce_ok) + len(terminales_salesforce_fail)}</h2><br>\n")
                 archivo.write(f"\t<h3 id=\"green\">Actualizacion Ok: {len(terminales_salesforce_ok)}</h3>\n")
                 if len(terminales_salesforce_ok) == 0:
-                    archivo.write(f"\t<p><b>No se detectaron termianles en este estadio.</b></p>\n")
+                    archivo.write(f"\t<p><b>No se detectaron terminales en este estadio.</b></p>\n")
                 else:
                     archivo.write(f"\t<table>\n")
                     archivo.write(f"\t\t<tbody>\n")
@@ -131,7 +131,7 @@ class ServiciosReporte:
                     archivo.write(f"\t</table>\n")
                 archivo.write(f"\t<h3 id=\"red\">Actualizacion fallida: {len(terminales_salesforce_fail)}</h3>\n")
                 if len(terminales_salesforce_fail) == 0:
-                    archivo.write(f"\t<p><b>No se detectaron termianles en este estadio.</b></p>\n")
+                    archivo.write(f"\t<p><b>No se detectaron terminales en este estadio.</b></p>\n")
                 else:
                     archivo.write(f"\t<table>\n")
                     archivo.write(f"\t\t<tbody>\n")
@@ -154,13 +154,13 @@ class ServiciosReporte:
                 archivo.write(f"\t<hr><h2 id=\"orange\">Terminales con incidentes: {len(terminales_inexistentes) + len(terminales_invalidas) + len(terminales_fail_merchant)}</h2><br>\n")
                 archivo.write(f"\t<h3 id=\"red\">Terminales con merchant invalido: {len(terminales_fail_merchant)}</h3>\n")
                 if len(terminales_fail_merchant) == 0:
-                    archivo.write(f"\t<p><b>No se detectaron termianles en este estadio.</b></p>\n")
+                    archivo.write(f"\t<p><b>No se detectaron terminales en este estadio.</b></p>\n")
                 else:
                     archivo.write(f"\t<table>\n")
                     archivo.write(f"\t\t<tbody>\n")
                     archivo.write(f"\t\t\t<tr>\n")
                     contador = 0
-                    for numero in terminales_salesforce_fail:
+                    for numero in terminales_fail_merchant:
                         if contador < 5:
                             archivo.write(f"\t\t\t\t<td>{numero}</td>\n")
                             contador += 1
@@ -175,7 +175,7 @@ class ServiciosReporte:
                     archivo.write(f"\t</table>\n")
                 archivo.write(f"\t<h3 id=\"red\">Terminales inexistentes en Salesforce: {len(terminales_inexistentes)}</h3>\n")
                 if len(terminales_inexistentes) == 0:
-                    archivo.write(f"\t<p><b>No se detectaron termianles en este estadio.</b></p>\n")
+                    archivo.write(f"\t<p><b>No se detectaron terminales en este estadio.</b></p>\n")
                 else:
                     archivo.write(f"\t<table>\n")
                     archivo.write(f"\t\t<tbody>\n")
@@ -196,7 +196,7 @@ class ServiciosReporte:
                     archivo.write(f"\t</table>\n")
                 archivo.write(f"\t<h3 id=\"red\">Terminales con estado invalido: {len(terminales_invalidas)}</h3>\n")
                 if len(terminales_invalidas) == 0:
-                    archivo.write(f"\t<p><b>No se detectaron termianles en este estadio.</b></p>\n")
+                    archivo.write(f"\t<p><b>No se detectaron terminales en este estadio.</b></p>\n")
                 else:
                     archivo.write(f"\t<table>\n")
                     archivo.write(f"\t\t<tbody>\n")
@@ -234,7 +234,7 @@ class ServiciosReporte:
             s.send_message(email)
             s.quit()
 
-            # os.remove(f"{archivo}.html")
+            os.remove(f"{file}.html")
 
             mensaje = f"Subproceso finalizado..."
             self.log.escribir(mensaje)
